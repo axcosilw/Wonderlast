@@ -1,2 +1,2 @@
 # new project
-# in this project i am creating a airbnb like website
+in this project i am creating a travel website
