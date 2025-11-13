@@ -7,6 +7,8 @@ const methodOverride=require("method-override");
 const ejsMate=require("ejs-mate");
 const wrapAsync=require("./utils/wrapAsync.js");
 const ExpressError=require("./utils/ExpressError.js");
+const {listingSchema}=require("./schema.js")
+const Review=require("./models/review.js");
 
 
 
@@ -24,9 +26,11 @@ main().then(()=>{
 app.set("view engine","ejs");
 app.set("views",path.join(__dirname,"views"));
 app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 app.use(methodOverride("_method"));
 app.engine('ejs',ejsMate);
 app.use(express.static(path.join(__dirname,"public")));
+
 
 //1.root route
 app.get("/",(req,res)=>{
@@ -49,7 +53,16 @@ app.get("/",(req,res)=>{
 
 // });
 
+const validateListing=(req,res,next)=>{
+    let {error}=listingSchema.validate(req.body);
+        if(error){
+            let errMsg=error.details.map((el)=>el.message).join(",")
+            throw new ExpressError(404,errMsg);
+        }else{
+            next();
+        }
 
+};
 //2.index route
 app.get("/listings",
     wrapAsync(async (req,res)=>{
@@ -87,10 +100,12 @@ app.get("/listings/:id" ,
 // );
 
 //4.(b)create route
-app.post("/listings",
+app.post("/listings",validateListing,
     wrapAsync(async(req,res,next)=>{
-        if(!req.body.listing){
-            throw new ExpressError(400,"Send valid data for listing")
+        let result=listingSchema.validate(req.body);
+        console.log(result);
+        if(result.error){
+            throw new ExpressError(404,result.error);
         }
         const newListing=new Listing(req.body.listing);//instance
         await newListing.save();
@@ -121,11 +136,8 @@ app.get("/listings/:id/edit",
 
 
 //5.(b)update route
-app.put("/listings/:id",
+app.put("/listings/:id",validateListing,
     wrapAsync(async(req,res)=>{
-      if(!req.body.listing){
-            throw new ExpressError(400,"Send valid data for updating the listing")
-        }
       let {id}=req.params;
       await Listing.findByIdAndUpdate(id,{...req.body.listing});
       res.redirect(`/listings/${id}`);
@@ -139,6 +151,24 @@ app.delete("/listings/:id",
     console.log(deletedListing);
     res.redirect("/listings");
 }));
+
+//7.reviews -post route
+app.post("/listings/:id/reviews",
+    wrapAsync(async(req,res)=>{
+       let listing=await Listing.findById(req.params.id);
+       let newReview=new Review(req.body.review);
+
+       listing.reviews.push(newReview);
+       await newReview.save();
+       await listing.save();
+
+    //    console.log("new review saved");
+    //    res.send("new review saved");
+    res.redirect(`/listings/${listing._id}`)
+
+    })
+)
+
 
 
 //upr agr kisi incoming req k sth match nhi hua then below one works
