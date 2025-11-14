@@ -1,17 +1,18 @@
 const express=require("express");
 const app=express();
 const mongoose=require("mongoose");
-const Listing=require("./models/listings.js");
+// const Listing=require("./models/listings.js");
 const path=require("path");
 const methodOverride=require("method-override");
 const ejsMate=require("ejs-mate");
-const wrapAsync=require("./utils/wrapAsync.js");
+// const wrapAsync=require("./utils/wrapAsync.js");
 const ExpressError=require("./utils/ExpressError.js");
-const {listingSchema,reviewSchema}=require("./schema.js");
-const Review=require("./models/review.js");
+// const {listingSchema,reviewSchema}=require("./schema.js");
+// const Review=require("./models/review.js");
 
 
 const listings=require("./routes/listing.js");
+const reviews=require("./routes/review.js");
 
 
 
@@ -40,6 +41,14 @@ app.get("/",(req,res)=>{
     res.send("working");
 });
 
+
+app.use("/listings",listings);
+app.use("/listings/:id/reviews",reviews);
+
+
+
+
+
 //2.testting our model
 // app.get("/testListing",async(req,res)=>{
 //     let Listings= new Listing({
@@ -57,32 +66,32 @@ app.get("/",(req,res)=>{
 // });
 
 
-//validating my listing for server side -create route
-const validateListing=(req,res,next)=>{
-    let {error}=listingSchema.validate(req.body);
-        if(error){
-            let errMsg=error.details.map((el)=>el.message).join(",")
-            throw new ExpressError(404,errMsg);
-        }else{
-            next();
-        }
+// //validating my listing for server side -create route
+// const validateListing=(req,res,next)=>{
+//     let {error}=listingSchema.validate(req.body);
+//         if(error){
+//             let errMsg=error.details.map((el)=>el.message).join(",")
+//             throw new ExpressError(404,errMsg);
+//         }else{
+//             next();
+//         }
 
-};
+// };
 
 //validating reviiew for server side -review post route
-const validateReview=(req,res,next)=>{
-    let {error}=reviewSchema.validate(req.body);
-        if(error){
-            let errMsg=error.details.map((el)=>el.message).join(",")
-            console.log(error);
-            throw new ExpressError(404,errMsg);
-        }else{
-            next();
-        }
+// const validateReview=(req,res,next)=>{
+//     let {error}=reviewSchema.validate(req.body);
+//         if(error){
+//             let errMsg=error.details.map((el)=>el.message).join(",")
+//             console.log(error);
+//             throw new ExpressError(404,errMsg);
+//         }else{
+//             next();
+//         }
 
-};
+// };
 
-app.use("/listings",listings);
+
 
 
 // //2.index route
@@ -177,33 +186,33 @@ app.use("/listings",listings);
 // }));
 
 //7.reviews -
-//1.post route review
-app.post("/listings/:id/reviews",validateReview,
-    wrapAsync(async(req,res)=>{
-       let listing=await Listing.findById(req.params.id);
-       let newReview=new Review(req.body.review);
+// //1.post route review
+// app.post("/listings/:id/reviews",validateReview,
+//     wrapAsync(async(req,res)=>{
+//        let listing=await Listing.findById(req.params.id);
+//        let newReview=new Review(req.body.review);
 
-       listing.reviews.push(newReview);
-       await newReview.save();
-       await listing.save();
+//        listing.reviews.push(newReview);
+//        await newReview.save();
+//        await listing.save();
 
-    //    console.log("new review saved");
-    //    res.send("new review saved");
-    res.redirect(`/listings/${listing._id}`)
-  }));
+//     //    console.log("new review saved");
+//     //    res.send("new review saved");
+//     res.redirect(`/listings/${listing._id}`)
+//   }));
 
-//2.delete review route
-app.delete("/listings/:id/reviews/:reviewId",
-    wrapAsync(async(req,res)=>{
-        let{id,reviewId}=req.params;
-        await Listing.findByIdAndUpdate(id,{$pull:{reviews:reviewId}})
+// //2.delete review route
+// app.delete("/listings/:id/reviews/:reviewId",
+//     wrapAsync(async(req,res)=>{
+//         let{id,reviewId}=req.params;
+//         await Listing.findByIdAndUpdate(id,{$pull:{reviews:reviewId}})
 
-        //deleting review id from review array of listings 
-        await Review.findByIdAndDelete(reviewId);
-        res.redirect(`/listings/${id}`);
+//         //deleting review id from review array of listings 
+//         await Review.findByIdAndDelete(reviewId);
+//         res.redirect(`/listings/${id}`);
 
-    })
-)
+//     })
+// )
 
 
 //upr agr kisi incoming req k sth match nhi hua then below one works
