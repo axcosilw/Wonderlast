@@ -7,6 +7,7 @@ const ExpressError=require("../utils/ExpressError.js");
 
 
 
+
 //validating my listing for server side -create route
 const validateListing=(req,res,next)=>{
     let {error}=listingSchema.validate(req.body);
