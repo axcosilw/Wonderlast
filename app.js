@@ -17,8 +17,9 @@ const User=require("./models/user.js")
 
 
 
-const listings=require("./routes/listing.js");
-const reviews=require("./routes/review.js");
+const listingRouter=require("./routes/listing.js");
+const reviewRouter=require("./routes/review.js");
+const userRouter=require("./routes/user.js")
 
 
 
@@ -67,8 +68,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
 
-passport.serializeUser(User.serializeUser);
-passport.deserializeUser(User.deserializeUser);
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 
 //flash
@@ -81,18 +82,21 @@ app.use((req,res,next)=>{
 
 
 //demouser
-app.get("/demouser",async (req,res)=>{
-    let fakeUser=new User({
-        email:"student2@gmail.com",
-        username:"delta2-student"
-    });
+// app.get("/demouser",async (req,res)=>{
+//     let fakeUser=new User({
+//         email:"student2@gmail.com",
+//         username:"delta2-student"
+//     });
 
-    let registerdUser=await User.register(fakeUser,"helloshona");
-    res.send(registerdUser);
-})
+//     let registerdUser=await User.register(fakeUser,"helloshona");
+//     res.send(registerdUser);
+// })
 
-app.use("/listings",listings);
-app.use("/listings/:id/reviews",reviews);
+
+//express-router
+app.use("/listings",listingRouter);
+app.use("/listings/:id/reviews",reviewRouter);
+app.use("/",userRouter);
 
 
 
