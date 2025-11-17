@@ -4,6 +4,7 @@ const User=require("../models/user.js")
 const wrapAsync=require("../utils/wrapAsync.js")
 const passport=require("passport");
 const LocalStrategy=require("passport-local");
+const {saveRedirectUrl}=require("../middleware.js")
 
 router.get("/signup",(req,res)=>{
     res.render("users/signup.ejs")
@@ -15,8 +16,14 @@ router.post("/signup",wrapAsync(async(req,res)=>{
        const newUser=new User({email,username});
        const registerdUser= await User.register(newUser,password);
        //console.log(registerdUser);
-       req.flash("success","welcome to WanderLast");
-       res.redirect("/listings");
+       req.login(registerdUser,(err)=>{
+        if(err){
+            return next(err);
+        }
+        req.flash("success","welcome to WanderLast");
+        res.redirect("/listings");
+       })
+       
 
     }catch(err){
         req.flash("error",err.message)
@@ -32,14 +39,16 @@ router.get("/login",(req,res)=>{
 });
 
 router.post("/login",
+    saveRedirectUrl,
     passport.authenticate("local",
         {failureRedirect:'/login',
         failureFlash:true}),
         
 async(req,res)=>{
    // res.send("working");
-    req.flash("success","Logged in succesfully,welcome back to wonderlast ")
-    res.redirect("/listings");
+    req.flash("success","welcome back to wonderlast ");
+    let redirectUrl=res.locals.redirectUrl || "/listings";
+    res.redirect(redirectUrl);
 })
 
 
