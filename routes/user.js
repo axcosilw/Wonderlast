@@ -46,8 +46,8 @@ router.post("/login",
         
 async(req,res)=>{
    // res.send("working");
-    req.flash("success","welcome back to wonderlast ");
-    let redirectUrl=res.locals.redirectUrl || "/listings";
+    await req.flash("success","welcome back to wonderlast ");
+    let redirectUrl= await res.locals.redirectUrl || "/listings";
     res.redirect(redirectUrl);
 })
 
