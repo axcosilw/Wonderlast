@@ -5,13 +5,19 @@ const wrapAsync=require("../utils/wrapAsync.js");
 const {listingSchema}=require("../schema.js");
 const ExpressError=require("../utils/ExpressError.js");
 const {isLoggedIn, isOwner,validateListing}=require("../middleware.js")
+const multer=require("multer");
+//to upload  files from multer to uplads 
+const upload=multer({dest:"uploads/"})
 
 const listingController=require("../controllers/listings.js");
 
 //index and create route:-
 router.route("/")
 .get(wrapAsync(listingController.index))
-.post(isLoggedIn,validateListing, wrapAsync(listingController.createListing));
+// .post(isLoggedIn,validateListing, wrapAsync(listingController.createListing));
+.post(upload.single('listing[image]'),(req,res)=>{
+    res.send(req.file);
+})
 
 //4. new route
 router.get("/new",isLoggedIn, wrapAsync(listingController.renderNewForm));
