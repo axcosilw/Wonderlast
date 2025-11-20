@@ -11,6 +11,7 @@ const methodOverride=require("method-override");
 const ejsMate=require("ejs-mate");
 const ExpressError=require("./utils/ExpressError.js");
 const session=require("express-session");
+const MongoStore=require("connect-mongo");
 const flash=require("connect-flash");
 const passport=require("passport");
 const LocalStrategy=require("passport-local");
@@ -29,9 +30,12 @@ const userRouter=require("./routes/user.js")
 
 
 
-const MONGO_URL="mongodb://127.0.0.1:27017/wonderlast"
+//const MONGO_URL="mongodb://127.0.0.1:27017/wonderlast"
+
+//CONNECTING MONGOOSE WITH ATLAS DATABASE
+const dbUrl=process.env.ATLASDB_URL;
 async function main(){
-    await mongoose.connect(MONGO_URL);
+    await mongoose.connect(dbUrl);
 };
 main().then(()=>{
     console.log("CONNECTED WITH MONGODB")
@@ -48,8 +52,24 @@ app.use(methodOverride("_method"));
 app.engine('ejs',ejsMate);
 app.use(express.static(path.join(__dirname,"public")));
 
+
+//mongostore:-
+const store=MongoStore.create({
+    mongoUrl:dbUrl,
+    crypto:{
+        secret:"mysupersecretcode"
+    },
+    touchAfter:24*3600
+})
+
+store.on("error",()=>{
+    console.log("ERROR IN MONGO SESSION STORE",err);
+})
+
+
 //session
 const sessionOptions={
+    store:store,
     secret:"mysupersecretcode",
     resave:false,
     saveUninitialized:true,
@@ -59,6 +79,7 @@ const sessionOptions={
         httpOnly:true
     }
 };
+
 
 //1.root route
 // app.get("/",(req,res)=>{
