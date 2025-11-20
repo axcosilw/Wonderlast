@@ -61,9 +61,9 @@ const sessionOptions={
 };
 
 //1.root route
-app.get("/",(req,res)=>{
-    res.send("working");
-});
+// app.get("/",(req,res)=>{
+//     res.send("working");
+// });
 
 
 app.use(session(sessionOptions));
