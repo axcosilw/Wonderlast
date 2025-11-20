@@ -33,7 +33,7 @@ const userRouter=require("./routes/user.js")
 //const MONGO_URL="mongodb://127.0.0.1:27017/wonderlast"
 
 //CONNECTING MONGOOSE WITH ATLAS DATABASE
-const dbUrl=process.env.ATLASDB_URL;
+const dbUrl=process.env.ATLAS_DB_URL;
 async function main(){
     await mongoose.connect(dbUrl);
 };
@@ -54,13 +54,14 @@ app.use(express.static(path.join(__dirname,"public")));
 
 
 //mongostore:-
-const store=MongoStore.create({
-    mongoUrl:dbUrl,
-    crypto:{
-        secret:"mysupersecretcode"
-    },
-    touchAfter:24*3600
-})
+const store = MongoStore.create({
+  client: mongoose.connection.getClient(),
+  dbName: "wonderLast",
+  crypto: {
+    secret: process.env.SECRET
+  },
+  touchAfter: 24 * 3600
+});
 
 store.on("error",(err)=>{
     console.log("ERROR IN MONGO SESSION STORE",err);
