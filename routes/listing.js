@@ -5,19 +5,23 @@ const wrapAsync=require("../utils/wrapAsync.js");
 const {listingSchema}=require("../schema.js");
 const ExpressError=require("../utils/ExpressError.js");
 const {isLoggedIn, isOwner,validateListing}=require("../middleware.js")
-const multer=require("multer");
-//to upload  files from multer to uplads 
-const upload=multer({dest:"uploads/"})
+const multer = require("multer");
+const { storage } = require("../cloudConfig");
+const upload = multer({ storage });
 
 const listingController=require("../controllers/listings.js");
 
-//index and create route:-
+// index and create route:
 router.route("/")
-.get(wrapAsync(listingController.index))
-// .post(isLoggedIn,validateListing, wrapAsync(listingController.createListing));
-.post(upload.single('listing[image]'),(req,res)=>{
-    res.send(req.file);
-})
+  .get(wrapAsync(listingController.index))
+  .post(
+    isLoggedIn,
+    upload.single("listing[image]"),
+    validateListing,
+    wrapAsync(listingController.createListing)
+  );
+
+
 
 //4. new route
 router.get("/new",isLoggedIn, wrapAsync(listingController.renderNewForm));
@@ -25,7 +29,7 @@ router.get("/new",isLoggedIn, wrapAsync(listingController.renderNewForm));
 
 //update,show and delete route:-
 router.route("/:id")
-.put(isLoggedIn,isOwner,validateListing, wrapAsync(listingController.updateListing))
+.put(isLoggedIn,isOwner,upload.single("listing[image]"),validateListing, wrapAsync(listingController.updateListing))
 .get( wrapAsync(listingController.showListing))
 .delete(isLoggedIn,isOwner,wrapAsync(listingController.destroyListing))
 
@@ -58,3 +62,7 @@ router.get("/:id/edit",isLoggedIn,isOwner, wrapAsync(listingController.renderEdi
 
 
 module.exports=router;
+
+
+
+
